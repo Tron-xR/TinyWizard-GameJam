@@ -39,7 +39,9 @@ public class FootstepAudio : MonoBehaviour
         AudioClip clip = GetSurfaceClip();
         if (clip == null) return;
 
-        footstepSource.pitch = Random.Range(defaultSounds.pitchMin, defaultSounds.pitchMax);
+        if (defaultSounds != null)
+            footstepSource.pitch = Random.Range(defaultSounds.pitchMin, defaultSounds.pitchMax);
+
         footstepSource.PlayOneShot(clip);
     }
 
@@ -50,14 +52,17 @@ public class FootstepAudio : MonoBehaviour
         {
             string tag = hit.collider.tag;
 
-            foreach (SurfaceSounds surface in surfaceSounds)
+            if (surfaceSounds != null)
             {
-                if (surface.surfaceTag == tag && surface.footstepClips != null && surface.footstepClips.Length > 0)
-                    return surface.footstepClips[Random.Range(0, surface.footstepClips.Length)];
+                foreach (SurfaceSounds surface in surfaceSounds)
+                {
+                    if (surface != null && surface.surfaceTag == tag && surface.footstepClips != null && surface.footstepClips.Length > 0)
+                        return surface.footstepClips[Random.Range(0, surface.footstepClips.Length)];
+                }
             }
         }
 
-        if (defaultSounds.footstepClips != null && defaultSounds.footstepClips.Length > 0)
+        if (defaultSounds != null && defaultSounds.footstepClips != null && defaultSounds.footstepClips.Length > 0)
             return defaultSounds.footstepClips[Random.Range(0, defaultSounds.footstepClips.Length)];
 
         return null;

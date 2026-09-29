@@ -58,6 +58,13 @@ public class SystemSetupWindow : EditorWindow
             return;
         }
 
+        ManaUI existing = FindFirstObjectByType<ManaUI>();
+        if (existing != null)
+        {
+            EditorUtility.DisplayDialog("Already Exists", "ManaUI already exists in scene. Delete the duplicates first, or just re-run the Wire step.", "OK");
+            return;
+        }
+
         GameObject manaGO = new GameObject("ManaUI");
         manaGO.transform.SetParent(canvas.transform, false);
         RectTransform rt = manaGO.AddComponent<RectTransform>();
@@ -80,7 +87,6 @@ public class SystemSetupWindow : EditorWindow
         fillImage.color = Color.blue;
         fillImage.type = Image.Type.Filled;
         fillImage.fillMethod = Image.FillMethod.Horizontal;
-        CanvasRenderer fillCR = fillGO.GetComponent<CanvasRenderer>();
         manaUI.manaFill = fillImage;
 
         GameObject textGO = new GameObject("ManaText");
@@ -105,6 +111,19 @@ public class SystemSetupWindow : EditorWindow
 
     private void CreatePauseCanvas()
     {
+        GameObject existing = GameObject.Find("PauseCanvas");
+        if (existing != null)
+        {
+            PauseManager existingPm = FindFirstObjectByType<PauseManager>();
+            if (existingPm != null)
+            {
+                existingPm.pauseCanvas = existing;
+                EditorUtility.SetDirty(existingPm);
+            }
+            EditorUtility.DisplayDialog("Already Exists", "PauseCanvas already exists. Just re-wired it to PauseManager.", "OK");
+            return;
+        }
+
         GameObject pauseCanvasGO = new GameObject("PauseCanvas");
         Canvas canvas = pauseCanvasGO.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -177,15 +196,18 @@ public class SystemSetupWindow : EditorWindow
 
         GameObject player = health.gameObject;
         Renderer renderer = player.GetComponentInChildren<Renderer>();
-        if (renderer != null)
+        if (renderer == null)
         {
-            SerializedObject so = new SerializedObject(health);
-            so.FindProperty("playerRenderer").objectReferenceValue = renderer;
-            so.ApplyModifiedProperties();
-            EditorUtility.SetDirty(health);
-            Debug.Log("PlayerHealth renderer set to " + renderer.name);
+            Debug.LogWarning("PlayerHealth: no Renderer found under " + player.name);
+            return;
         }
 
+        SerializedObject so = new SerializedObject(health);
+        so.FindProperty("playerRenderer").objectReferenceValue = renderer;
+        so.ApplyModifiedProperties();
+        EditorUtility.SetDirty(health);
+
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        Debug.Log("PlayerHealth renderer set to " + renderer.name);
     }
 }
